@@ -1,6 +1,9 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, Text, StyleSheet, Button, Alert} from 'react-native';
-import Card from '../components/Card'
+import {View, Text, StyleSheet, Button, Alert, ScrollView} from 'react-native';
+import Card from '../components/Card';
+import BotonPrincipal from '../components/BotonPrincipal';
+import {Ionicons} from '@expo/vector-icons';
+
 
 
 const generarNumeroRandom = (min, max, exclude) => {
@@ -15,26 +18,32 @@ const generarNumeroRandom = (min, max, exclude) => {
 }
 
 export default PantallaResultadosJuego = (props) => {
+    const initialGuess= generarNumeroRandom(1, 100, numElegido);
     const {numElegido, onGameOver} = props;
-    const [currentGuess, setCurrentGuess] = useState(generarNumeroRandom(1, 100, numElegido));
-    const [rounds, setRounds] = useState(0)
+    const [currentGuess, setCurrentGuess] = useState(initialGuess);
+    const [pastGuess, setPastGuess] = useState([initialGuess])
     const menorActual = useRef(1);
     const altoActual = useRef(100);
 
     
     useEffect(() => {
         if (currentGuess === numElegido ) {
-            onGameOver(rounds);
+            onGameOver(pastGuess.length);
         }
 
     }, [currentGuess, numElegido, onGameOver])
     
         const siguienteAdivinado = direccion => {
-            setRounds(
-                curRounds =>{
-                    curRounds+1;
-                }
-            );
+            // setRounds(
+            //     curRounds =>{
+            //         curRounds+1;
+            //     }
+            // );
+            setPastGuess(prevState =>
+                            [siguienteNumero,...prevState]
+                );
+
+
             if((direccion==='menor' && currentGuess<numElegido) || (direccion==='mayor' && currentGuess>numElegido)){
                 Alert.alert('mañozo', 'Ese es un numero malo', [{text:'Okay', style:'cancel'}]);
                 return;
@@ -42,12 +51,13 @@ export default PantallaResultadosJuego = (props) => {
             if(direccion==='menor'){
                 altoActual.current=currentGuess;
             }
-             else{
-                 menorActual.current=currentGuess;
-             }
+            else{
+                menorActual.current=currentGuess+1;
+            }
             const siguienteNumero = generarNumeroRandom(menorActual.current, altoActual.current, currentGuess);
             
             setCurrentGuess(siguienteNumero);
+            
             
            
         }
@@ -58,9 +68,16 @@ export default PantallaResultadosJuego = (props) => {
                     {currentGuess}
                 </Text>
                 <Card style={styles.buttonContainer}>
-                <Button title="Bajar" onPress ={ siguienteAdivinado.bind(this, 'menor')}/>
-                <Button title="Subir" onPress ={ siguienteAdivinado.bind(this, 'mayor')}/>
+                    <BotonPrincipal onPress ={ siguienteAdivinado.bind(this, 'menor')}>
+                    <Ionicons name='md-remove' size={24} color ="white"/>
+                    </BotonPrincipal>
+                    <BotonPrincipal onPress ={ siguienteAdivinado.bind(this, 'mayor')}>
+                    <Ionicons name='md-add' size={24} color ="white"/>
+                    </BotonPrincipal>
                 </Card>
+                <ScrollView>
+                    {pastGuess.map( guess => <View key={guess}><Text>{guess}</Text></View>) }
+                </ScrollView>
             </View>
         );
   
